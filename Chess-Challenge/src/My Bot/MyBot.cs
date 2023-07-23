@@ -31,9 +31,11 @@ public class MyBot : IChessBot
             }
 
             // Find highest value capture
-            Piece capturedPiece = board.GetPiece(move.TargetSquare);
-            int capturedPieceValue = pieceValues[(int)capturedPiece.PieceType];
-
+            int movedPieceValue = pieceValues[(int)move.MovePieceType];
+            int capturedPieceValue = pieceValues[(int)move.CapturePieceType];
+            if (board.SquareIsAttackedByOpponent(move.TargetSquare)) {
+              capturedPieceValue = capturedPieceValue - movedPieceValue;
+            }
             if (capturedPieceValue > highestValueCapture)
             {
                 moveToPlay = move;
