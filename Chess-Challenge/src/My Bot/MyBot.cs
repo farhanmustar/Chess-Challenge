@@ -24,6 +24,12 @@ public class MyBot : IChessBot
                 break;
             }
 
+            // Always promote to queen
+            if (move.IsPromotion && move.PromotionPieceType == PieceType.Queen) {
+              moveToPlay = move;
+              break;
+            }
+
             // Find highest value capture
             Piece capturedPiece = board.GetPiece(move.TargetSquare);
             int capturedPieceValue = pieceValues[(int)capturedPiece.PieceType];
