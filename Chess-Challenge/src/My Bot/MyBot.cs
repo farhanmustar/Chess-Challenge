@@ -33,7 +33,7 @@ public class MyBot : IChessBot
             // Find highest value capture
             int movedPieceValue = pieceValues[(int)move.MovePieceType];
             int capturedPieceValue = pieceValues[(int)move.CapturePieceType];
-            if (board.SquareIsAttackedByOpponent(move.TargetSquare)) {
+            if (capturedPieceValue > 0 && board.SquareIsAttackedByOpponent(move.TargetSquare)) {
               capturedPieceValue = capturedPieceValue - movedPieceValue;
             }
             if (capturedPieceValue > highestValueCapture)
