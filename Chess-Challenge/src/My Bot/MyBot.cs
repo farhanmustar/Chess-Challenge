@@ -8,6 +8,8 @@ public class MyBot : IChessBot
     // Piece values: null, pawn, knight, bishop, rook, queen, king
     int[] pieceValues = { 0, 100, 300, 300, 500, 900, 1000 };
 
+    // TODO: check protected by other type. or filter to exclude queen. cause queen need to be mobile?
+
     // TODO: save queen if it is attacked (or rook and others too.
     // TODO: check attacked piece and see if can move to protect it
     public Move Think(Board board, Timer timer)
@@ -120,10 +122,9 @@ public class MyBot : IChessBot
     bool MoveIsProtected(Board board, Move move)
     {
       bool p = false;
-      if (board.TrySkipTurn()) {
-        p = board.SquareIsAttackedByOpponent(move.TargetSquare);
-        board.UndoSkipTurn();
-      }
+      board.MakeMove(move);
+      p = board.SquareIsAttackedByOpponent(move.TargetSquare);
+      board.UndoMove(move);
       return p;
     }
 
