@@ -15,14 +15,17 @@ public class MyBot : IChessBot
     public Move Think(Board board, Timer timer)
     {
         bool is_white = board.IsWhiteToMove;
-      // TODO: use nonAlloc type
+        // TODO: use nonAlloc type
         Move[] allMoves = board.GetLegalMoves();
         PieceList[] pieceLists = board.GetAllPieceLists();
-        var movesData = new Dictionary<Move, int>();
+        var movesData = new Dictionary<Move, double>();
+
+        Random rng = new();
 
         foreach (Move move in allMoves)
         {
-          movesData[move] = 0;
+          // Initialize in some randomness incase no clear option
+          movesData[move] = rng.Next(100);
 
           // Always play checkmate in one
           if (MoveIsCheckmate(board, move))
@@ -35,7 +38,6 @@ public class MyBot : IChessBot
           // TODO: add progressive move score... half the piece value for other type
           // for pawn is based on rank normalized.
 
-          // TODO: add move is attacking...
           // TODO: add move is pinning
 
           if (move.MovePieceType == PieceType.Pawn && 
@@ -67,9 +69,15 @@ public class MyBot : IChessBot
               movesData[move] += pieceValues[(int)move.CapturePieceType] * 5;
 
             } else if (MoveIsAttacked(board, move) && MoveIsProtected(board, move)) {
-              movesData[move] += pieceValues[(int)move.CapturePieceType] * 3 - pieceValues[(int)move.MovePieceType];
+              movesData[move] += pieceValues[(int)move.CapturePieceType] * 3 - pieceValues[(int)move.MovePieceType] * 1;
+            } else {
+              movesData[move] += pieceValues[(int)move.CapturePieceType] * 1 - pieceValues[(int)move.MovePieceType] * 1.5;
             }
-            movesData[move] += pieceValues[(int)move.CapturePieceType] * 2;
+
+            if (isAttacking != PieceType.None && pieceValues[(int)isAttacking] > pieceValues[(int)move.CapturePieceType]) {
+              // Is pinning the capture piece with attacking piece.
+              movesData[move] -= pieceValues[(int)isAttacking] * 2;
+            }
           }
 
           if (isAttacking != PieceType.None) {
@@ -92,7 +100,7 @@ public class MyBot : IChessBot
             movesData[move] = 0;
           }
           if (move.MovePieceType == PieceType.King) {
-            movesData[move] -= pieceValues[(int)move.MovePieceType];
+            movesData[move] -= pieceValues[(int)move.MovePieceType] * 0.1;
           }
         }
         return movesData.MaxBy(kv => kv.Value).Key;
