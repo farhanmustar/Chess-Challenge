@@ -9,6 +9,7 @@ public class MyBot : IChessBot
     int[] pieceValues = { 0, 100, 300, 300, 500, 900, 1000 };
     PieceType[] pinnablePiece = {PieceType.Bishop, PieceType.Rook, PieceType.Queen};
 
+    // TODO: check using queen while being attacked. why??
     // TODO: check protected by other type. or filter to exclude queen. cause queen need to be mobile?
 
     // TODO: save queen if it is attacked (or rook and others too.
@@ -40,8 +41,6 @@ public class MyBot : IChessBot
           // TODO: add progressive move score... half the piece value for other type
           // for pawn is based on rank normalized.
 
-          // TODO: add move is pinning
-
           if (move.MovePieceType == PieceType.Pawn && 
               MoveIsRankUp(board, move) &&
               (MoveIsProtected(board, move) || !MoveIsAttacked(board, move))) {
@@ -49,9 +48,7 @@ public class MyBot : IChessBot
           }
 
           if (move.MovePieceType != PieceType.Pawn &&
-              MoveIsCheck(board, move) &&
-              (MoveIsProtected(board, move) || !MoveIsAttacked(board, move))) {
-
+              MoveIsCheck(board, move) && !MoveIsAttacked(board, move)) {
             movesData[move] += pieceValues[(int)PieceType.King] -
               pieceValues[(int)move.MovePieceType];
           }
@@ -71,9 +68,9 @@ public class MyBot : IChessBot
               movesData[move] += pieceValues[(int)move.CapturePieceType] * 5;
 
             } else if (MoveIsAttacked(board, move) && MoveIsProtected(board, move)) {
-              movesData[move] += pieceValues[(int)move.CapturePieceType] * 3 - pieceValues[(int)move.MovePieceType] * 1;
+              movesData[move] += pieceValues[(int)move.CapturePieceType] * 2 - pieceValues[(int)move.MovePieceType] * 3;
             } else {
-              movesData[move] += pieceValues[(int)move.CapturePieceType] * 1 - pieceValues[(int)move.MovePieceType] * 1.5;
+              movesData[move] += pieceValues[(int)move.CapturePieceType] * 1 - pieceValues[(int)move.MovePieceType] * 3;
             }
 
             if (isAttacking != PieceType.None && isAttacking > move.CapturePieceType) {
@@ -86,7 +83,7 @@ public class MyBot : IChessBot
             PieceType isPinning = MoveIsPinning(board, move);
             if (isPinning > PieceType.Knight) {
               if (!MoveIsAttacked(board, move)) {
-                movesData[move] += pieceValues[(int)isPinning] * 2;
+                movesData[move] += pieceValues[(int)isPinning] * 0.5;
               }
             }
           }
