@@ -7,6 +7,7 @@ public class MyBot : IChessBot
 {
     // Piece values: null, pawn, knight, bishop, rook, queen, king
     int[] pieceValues = { 0, 100, 300, 300, 500, 900, 1000 };
+    PieceType[] pinnablePiece = {PieceType.Bishop, PieceType.Rook, PieceType.Queen};
 
     // TODO: check protected by other type. or filter to exclude queen. cause queen need to be mobile?
 
@@ -33,6 +34,7 @@ public class MyBot : IChessBot
               return move;
           }
 
+          // TODO: check who move is attacked by this add values also.
           PieceType isAttacking = MoveIsAttacking(board, move);
 
           // TODO: add progressive move score... half the piece value for other type
@@ -74,9 +76,18 @@ public class MyBot : IChessBot
               movesData[move] += pieceValues[(int)move.CapturePieceType] * 1 - pieceValues[(int)move.MovePieceType] * 1.5;
             }
 
-            if (isAttacking != PieceType.None && pieceValues[(int)isAttacking] > pieceValues[(int)move.CapturePieceType]) {
+            if (isAttacking != PieceType.None && isAttacking > move.CapturePieceType) {
               // Is pinning the capture piece with attacking piece.
               movesData[move] -= pieceValues[(int)isAttacking] * 2;
+            }
+          }
+
+          if (pinnablePiece.Contains(move.MovePieceType)) {
+            PieceType isPinning = MoveIsPinning(board, move);
+            if (isPinning > PieceType.Knight) {
+              if (!MoveIsAttacked(board, move)) {
+                movesData[move] += pieceValues[(int)isPinning] * 2;
+              }
             }
           }
 
@@ -168,8 +179,10 @@ public class MyBot : IChessBot
         Move[] allMoves = board.GetLegalMoves(true);
         foreach (Move nextMove in allMoves)
         {
-          if (move.TargetSquare == nextMove.StartSquare &&
-              (int)nextMove.CapturePieceType > (int)isAttacking) {
+          if (move.TargetSquare != nextMove.StartSquare || MoveIsAttacked(board, nextMove)) {
+            continue;
+          }
+          if (nextMove.CapturePieceType > isAttacking) {
             isAttacking = nextMove.CapturePieceType;
           }
         }
@@ -179,6 +192,34 @@ public class MyBot : IChessBot
       }
       board.UndoMove(move);
       return isAttacking;
+    }
+
+    PieceType MoveIsPinning(Board board, Move move) {
+      PieceType isPinning = PieceType.None;
+      board.MakeMove(move);
+      if(board.TrySkipTurn()) {
+        Move[] allMoves = board.GetLegalMoves(true);
+        foreach (Move nextMove in allMoves)
+        {
+          if (move.TargetSquare != nextMove.StartSquare || MoveIsAttacked(board, nextMove)) {
+            continue;
+          }
+          PieceType isAttacking = MoveIsAttacking(board, nextMove);
+          if (isAttacking <= nextMove.CapturePieceType) {
+            continue;
+          }
+
+          if (isPinning < isAttacking) {
+            isPinning = isAttacking;
+          }
+        }
+        board.UndoSkipTurn();
+      } else {
+        // next move is check so no pinning
+        isPinning = PieceType.None;
+      }
+      board.UndoMove(move);
+      return isPinning;
     }
 
     int NormalizeRank(Board board, Square square) {
