@@ -7,7 +7,6 @@ public class MyBot : IChessBot
 {
     // Piece values: null, pawn, knight, bishop, rook, queen, king
     int[] pieceValues = { 0, 100, 300, 300, 500, 900, 1000 };
-    PieceType[] pinnablePiece = {PieceType.Bishop, PieceType.Rook, PieceType.Queen};
 
     // TODO: check using queen while being attacked. why??
     // TODO: check protected by other type. or filter to exclude queen. cause queen need to be mobile?
@@ -42,7 +41,6 @@ public class MyBot : IChessBot
           // for pawn is based on rank normalized.
 
           if (move.MovePieceType == PieceType.Pawn && 
-              MoveIsRankUp(board, move) &&
               (MoveIsProtected(board, move) || !MoveIsAttacked(board, move))) {
             movesData[move] += (pieceValues[(int)move.MovePieceType] * NormalizeRank(board, move.TargetSquare)) / 2;
           }
@@ -79,7 +77,7 @@ public class MyBot : IChessBot
             }
           }
 
-          if (pinnablePiece.Contains(move.MovePieceType)) {
+          if (move.MovePieceType > PieceType.Knight) {
             PieceType isPinning = MoveIsPinning(board, move);
             if (isPinning > PieceType.Knight) {
               if (!MoveIsAttacked(board, move)) {
@@ -95,7 +93,6 @@ public class MyBot : IChessBot
           }
 
           if (move.IsPromotion && move.PromotionPieceType == PieceType.Queen) {
-            Console.WriteLine("queen promotion");
             if (!MoveIsAttacked(board, move)) {
               movesData[move] += pieceValues[(int)move.PromotionPieceType] * 10;
             } else if (MoveIsProtected(board, move)) {
@@ -128,11 +125,6 @@ public class MyBot : IChessBot
         bool isCheck = board.IsInCheck();
         board.UndoMove(move);
         return isCheck;
-    }
-
-    bool MoveIsRankUp(Board board, Move move)
-    {
-      return NormalizeRank(board, move.TargetSquare) > NormalizeRank(board, move.StartSquare);
     }
 
     bool MoveIsProtected(Board board, Move move)

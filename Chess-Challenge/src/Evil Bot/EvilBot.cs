@@ -91,7 +91,6 @@ namespace ChessChallenge.Example
             }
 
             if (move.IsPromotion && move.PromotionPieceType == PieceType.Queen) {
-              Console.WriteLine("queen promotion");
               if (!MoveIsAttacked(board, move)) {
                 movesData[move] += pieceValues[(int)move.PromotionPieceType] * 10;
               } else if (MoveIsProtected(board, move)) {
